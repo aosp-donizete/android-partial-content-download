@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.doni.sample.splitter.OkHttpHandler
 import com.doni.sample.splitter.RangeDownloadManager
 import com.doni.sample.ui.theme.SplitDownloadSampleTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import kotlin.io.path.deleteIfExists
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.Default) {
             val rangeDownloadManager = RangeDownloadManager(
                 OkHttpHandler,
                 parts = 10,
@@ -56,12 +57,14 @@ class MainActivity : ComponentActivity() {
 
             val messageDigest = MessageDigest.getInstance("SHA256")
             output.inputStream().use { input ->
-                val byteArray = ByteArray(1024)
+                println("Digesting start")
+                val byteArray = ByteArray(1 shl 16)
                 var read = input.read(byteArray)
                 while (read > 0) {
                     messageDigest.update(byteArray, 0, read)
                     read = input.read(byteArray)
                 }
+                println("Digesting done")
             }
             println("Digest: ${messageDigest.digest().toHexString()}")
 
