@@ -12,13 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
-import com.doni.sample.splitter.SplitterManager
+import com.doni.sample.splitter.OkHttpHandler
+import com.doni.sample.splitter.RangeDownloadManager
 import com.doni.sample.ui.theme.SplitDownloadSampleTheme
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.inputStream
-import kotlin.io.path.pathString
+import kotlin.time.measureTimedValue
 
 @OptIn(ExperimentalStdlibApi::class)
 class MainActivity : ComponentActivity() {
@@ -38,17 +39,23 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-            val tmp = kotlin.io.path.createTempFile()
-
-            SplitterManager.get(
-                "http://10.0.2.2:8000/download/oldsmobile.zip",
-                tmp.pathString,
-                parts = 10,
-                retry = 4
+            val rangeDownloadManager = RangeDownloadManager(
+                OkHttpHandler,
+                parts = 100,
+                retry = 3,
+                parallelism = 100
             )
 
+            val (output, time) = measureTimedValue {
+                rangeDownloadManager.download(
+                    "http://10.0.2.2:8000/download/oldsmobile.zip"
+                )
+            }
+
+            println("Took ${time.inWholeSeconds} seconds")
+
             val messageDigest = MessageDigest.getInstance("SHA256")
-            tmp.inputStream().use { input ->
+            output.inputStream().use { input ->
                 val byteArray = ByteArray(1024)
                 var read = input.read(byteArray)
                 while (read > 0) {
@@ -58,7 +65,7 @@ class MainActivity : ComponentActivity() {
             }
             println("Digest: ${messageDigest.digest().toHexString()}")
 
-            tmp.deleteIfExists()
+            output.deleteIfExists()
         }
     }
 }
