@@ -17,6 +17,7 @@ object OkHttpHandler : HttpHandler {
             .build()
 
         val response = client.newCall(request).executeAsync()
+
         return response.headers.toMap()
     }
 
@@ -26,6 +27,7 @@ object OkHttpHandler : HttpHandler {
             .header("Range", "bytes=$start-$end")
             .get()
             .build()
+
         val response = client.newCall(request).executeAsync()
 
         if (response.code != 206) {
