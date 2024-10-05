@@ -36,8 +36,7 @@ class RangeDownloadManager(
                 var remaining = ranges.size
                 responses.consumeEach {
                     add(it)
-                    remaining--
-                    if (remaining <= 0) {
+                    if (--remaining <= 0) {
                         requests.close()
                         responses.close()
                     }
