@@ -25,15 +25,13 @@ class RangeDownloadManager(
     suspend fun download(url: String): Path {
         val ranges = generateRanges(getContentLength(url))
 
-        val responses = Channel<RangeResponse>(Channel.UNLIMITED)
-        val requests = Channel<RangeRequest>(Channel.UNLIMITED).apply {
+        val responses = Channel<RangeResponse>(ranges.size)
+        val requests = Channel<RangeRequest>(ranges.size).apply {
             ranges.forEachIndexed { index, range -> trySend(RangeRequest(index, range, url)) }
         }
 
         val rangeResponses: List<RangeResponse> = withContext(Dispatchers.IO) {
-            repeat(parallelism) {
-                launch { handleRequests(requests, responses) }
-            }
+            repeat(parallelism) { launch { handleRequests(requests, responses) } }
             buildList {
                 var remaining = ranges.size
                 responses.consumeEach {
