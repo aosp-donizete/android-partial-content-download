@@ -41,9 +41,9 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             val rangeDownloadManager = RangeDownloadManager(
                 OkHttpHandler,
-                parts = 100,
+                parts = 10,
                 retry = 3,
-                parallelism = 100
+                parallelism = 10
             )
 
             val (output, time) = measureTimedValue {

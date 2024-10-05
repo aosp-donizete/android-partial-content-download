@@ -84,13 +84,13 @@ class RangeDownloadManager(
 
     private fun generateRanges(
         contentLength: Long
-    ): List<LongRange> {
-        return (0 until parts).map {
-            val start = it / 1F / parts
-            val end = (it + 1) / 1F / parts
-            (start * contentLength).toLong() until (end * contentLength).toLong()
-        }
-    }
+    ) = (0 until parts).map {
+        val start = it / 1F / parts
+        val end = (it + 1) / 1F / parts
+        val rs = (start * contentLength).toLong()
+        val re = (end * contentLength).toLong()
+        rs until re
+    }.filterNot(LongRange::isEmpty)
 
     private suspend fun handleRequests(
         requests: ReceiveChannel<RangeRequest>,
